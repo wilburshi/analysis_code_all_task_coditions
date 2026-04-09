@@ -1,6 +1,8 @@
 # Large / data files
 Lframe_triangulate
 slurm_run_job
+reference_from_alec
+
 *.pdf
 *.PDF
 *.mp4
@@ -17,6 +19,7 @@ slurm_run_job
 *.npz
 *.pt
 *.ckpt
+*.MOV
 
 *.sh
 
