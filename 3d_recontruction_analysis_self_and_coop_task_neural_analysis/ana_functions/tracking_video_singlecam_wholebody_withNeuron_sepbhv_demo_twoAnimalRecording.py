@@ -25,7 +25,12 @@ def tracking_video_singlecam_wholebody_withNeuron_sepbhv_demo_twoAnimalRecording
             ]
     nskeletons = np.shape(skeletons)[0]
 
-    colors = ['b','r','k']
+    # colors = ['b','r','k']
+    # colors = ['#a6a6a6','#000000','k']
+    colors = ['#bf3eff','#f5911e','#5c5c5c']
+    
+    linewidthss = 5
+    markersizess = 25
 
     import matplotlib.animation as animation
 
@@ -342,9 +347,9 @@ def tracking_video_singlecam_wholebody_withNeuron_sepbhv_demo_twoAnimalRecording
                     bodypart_loc_iframe[ibdpart,:] = np.array(bodyparts_locs_camN[(ianimal_name,ibdpart_name)])[iframe,:]
                 # plot the body parts
                 if (ianimal==0): 
-                    ax1.plot(bodypart_loc_iframe[:,0], bodypart_loc_iframe[:,1], '.', color=colors[ianimal],label ='animal1 '+animal1)
+                    ax1.plot(bodypart_loc_iframe[:,0], bodypart_loc_iframe[:,1], '.', markersize=markersizess, color=colors[ianimal],label ='animal1 '+animal1)
                 else:
-                    ax1.plot(bodypart_loc_iframe[:,0], bodypart_loc_iframe[:,1], '.', color=colors[ianimal],label ='animal2 '+animal2)
+                    ax1.plot(bodypart_loc_iframe[:,0], bodypart_loc_iframe[:,1], '.', markersize=markersizess, color=colors[ianimal],label ='animal2 '+animal2)
 
                 # draw skeleton                
                 for iskel in np.arange(0,nskeletons,1):
@@ -358,7 +363,7 @@ def tracking_video_singlecam_wholebody_withNeuron_sepbhv_demo_twoAnimalRecording
                         skelbody12_loc_iframe[0,:] = np.array(bodyparts_locs_camN[(ianimal_name,skel_body1_name)])[iframe,:]
                         skelbody12_loc_iframe[1,:] = np.array(bodyparts_locs_camN[(ianimal_name,skel_body2_name)])[iframe,:]
                         # plot one skeleton
-                        ax1.plot(skelbody12_loc_iframe[:,0],skelbody12_loc_iframe[:,1],'-',color=colors[ianimal])
+                        ax1.plot(skelbody12_loc_iframe[:,0],skelbody12_loc_iframe[:,1],'-',linewidth=linewidthss, color=colors[ianimal])
                     except:
                         continue
 
@@ -381,41 +386,45 @@ def tracking_video_singlecam_wholebody_withNeuron_sepbhv_demo_twoAnimalRecording
 
                 # face_offset = np.nanmax([dist1,dist2,dist3,dist4,dist5,dist6])*sqr_thres_face # draw square around face
                 face_offset = np.nanmax([dist7,dist8,dist9,dist10])*sqr_thres_face
-                ax1.plot([face_mass[0]-face_offset,face_mass[0]+face_offset],[face_mass[1]-face_offset,face_mass[1]-face_offset],'--',color=colors[ianimal])
-                ax1.plot([face_mass[0]-face_offset,face_mass[0]+face_offset],[face_mass[1]+face_offset,face_mass[1]+face_offset],'--',color=colors[ianimal])
-                ax1.plot([face_mass[0]-face_offset,face_mass[0]-face_offset],[face_mass[1]-face_offset,face_mass[1]+face_offset],'--',color=colors[ianimal])
-                ax1.plot([face_mass[0]+face_offset,face_mass[0]+face_offset],[face_mass[1]-face_offset,face_mass[1]+face_offset],'--',color=colors[ianimal])       
+                ax1.plot([face_mass[0]-face_offset,face_mass[0]+face_offset],[face_mass[1]-face_offset,face_mass[1]-face_offset],'--', linewidth=linewidthss, color=colors[ianimal])
+                ax1.plot([face_mass[0]-face_offset,face_mass[0]+face_offset],[face_mass[1]+face_offset,face_mass[1]+face_offset],'--', linewidth=linewidthss, color=colors[ianimal])
+                ax1.plot([face_mass[0]-face_offset,face_mass[0]-face_offset],[face_mass[1]-face_offset,face_mass[1]+face_offset],'--', linewidth=linewidthss, color=colors[ianimal])
+                ax1.plot([face_mass[0]+face_offset,face_mass[0]+face_offset],[face_mass[1]-face_offset,face_mass[1]+face_offset],'--', linewidth=linewidthss, color=colors[ianimal])       
 
                 # draw the estimated body
-                ax1.plot([face_mass[0]-face_offset,face_mass[0]+face_offset],[face_mass[1]-face_offset,face_mass[1]-face_offset],'--',color=colors[ianimal])
-                ax1.plot([face_mass[0]-face_offset,face_mass[0]+face_offset],[face_mass[1]+sqr_thres_body*face_offset,face_mass[1]+sqr_thres_body*face_offset],'--',color=colors[ianimal])
-                ax1.plot([face_mass[0]-face_offset,face_mass[0]-face_offset],[face_mass[1]-face_offset,face_mass[1]+sqr_thres_body*face_offset],'--',color=colors[ianimal])
-                ax1.plot([face_mass[0]+face_offset,face_mass[0]+face_offset],[face_mass[1]-face_offset,face_mass[1]+sqr_thres_body*face_offset],'--',color=colors[ianimal])                       
+                if 0: 
+                    ax1.plot([face_mass[0]-face_offset,face_mass[0]+face_offset],[face_mass[1]-face_offset,face_mass[1]-face_offset],'--',color=colors[ianimal])
+                    ax1.plot([face_mass[0]-face_offset,face_mass[0]+face_offset],[face_mass[1]+sqr_thres_body*face_offset,face_mass[1]+sqr_thres_body*face_offset],'--',color=colors[ianimal])
+                    ax1.plot([face_mass[0]-face_offset,face_mass[0]-face_offset],[face_mass[1]-face_offset,face_mass[1]+sqr_thres_body*face_offset],'--',color=colors[ianimal])
+                    ax1.plot([face_mass[0]+face_offset,face_mass[0]+face_offset],[face_mass[1]-face_offset,face_mass[1]+sqr_thres_body*face_offset],'--',color=colors[ianimal])                       
 
 
                 # draw lever and tube location
-                if (ianimal==1): 
-                    ax1.plot(lever_loc_both[ianimal_name][0],lever_loc_both[ianimal_name][1],'o',color='g',label='lever')
-                    ax1.plot(tube_loc_both[ianimal_name][0],tube_loc_both[ianimal_name][1],'o',color='y',label='tube')
-                else:
-                    ax1.plot(lever_loc_both[ianimal_name][0],lever_loc_both[ianimal_name][1],'o',color='g')
-                    ax1.plot(tube_loc_both[ianimal_name][0],tube_loc_both[ianimal_name][1],'o',color='y')
+                if 0:
+                    if (ianimal==1): 
+                        ax1.plot(lever_loc_both[ianimal_name][0],lever_loc_both[ianimal_name][1],'o', markersize=markersizess, color='g',label='lever')
+                        # ax1.plot(tube_loc_both[ianimal_name][0],tube_loc_both[ianimal_name][1],'o',color='y',label='tube')
+                    else:
+                        ax1.plot(lever_loc_both[ianimal_name][0],lever_loc_both[ianimal_name][1],'o',markersize=markersizess, color='g')
+                        # ax1.plot(tube_loc_both[ianimal_name][0],tube_loc_both[ianimal_name][1],'o',color='y')
 
 
                 # draw lever square
-                sqr_offset = sqr_thres_tubelever # usually set as 75: draw a 150x150 pixel around lever 
-                ax1.plot([lever_loc_both[ianimal_name][0]-sqr_offset,lever_loc_both[ianimal_name][0]+sqr_offset],[lever_loc_both[ianimal_name][1]-sqr_offset,lever_loc_both[ianimal_name][1]-sqr_offset],'--',color='g')
-                ax1.plot([lever_loc_both[ianimal_name][0]-sqr_offset,lever_loc_both[ianimal_name][0]+sqr_offset],[lever_loc_both[ianimal_name][1]+sqr_offset,lever_loc_both[ianimal_name][1]+sqr_offset],'--',color='g')
-                ax1.plot([lever_loc_both[ianimal_name][0]-sqr_offset,lever_loc_both[ianimal_name][0]-sqr_offset],[lever_loc_both[ianimal_name][1]-sqr_offset,lever_loc_both[ianimal_name][1]+sqr_offset],'--',color='g')
-                ax1.plot([lever_loc_both[ianimal_name][0]+sqr_offset,lever_loc_both[ianimal_name][0]+sqr_offset],[lever_loc_both[ianimal_name][1]-sqr_offset,lever_loc_both[ianimal_name][1]+sqr_offset],'--',color='g')
+                if 0:
+                    sqr_offset = sqr_thres_tubelever # usually set as 75: draw a 150x150 pixel around lever 
+                    ax1.plot([lever_loc_both[ianimal_name][0]-sqr_offset,lever_loc_both[ianimal_name][0]+sqr_offset],[lever_loc_both[ianimal_name][1]-sqr_offset,lever_loc_both[ianimal_name][1]-sqr_offset],'--',linewidth=linewidthss, color='g')
+                    ax1.plot([lever_loc_both[ianimal_name][0]-sqr_offset,lever_loc_both[ianimal_name][0]+sqr_offset],[lever_loc_both[ianimal_name][1]+sqr_offset,lever_loc_both[ianimal_name][1]+sqr_offset],'--',linewidth=linewidthss, color='g')
+                    ax1.plot([lever_loc_both[ianimal_name][0]-sqr_offset,lever_loc_both[ianimal_name][0]-sqr_offset],[lever_loc_both[ianimal_name][1]-sqr_offset,lever_loc_both[ianimal_name][1]+sqr_offset],'--',linewidth=linewidthss, color='g')
+                    ax1.plot([lever_loc_both[ianimal_name][0]+sqr_offset,lever_loc_both[ianimal_name][0]+sqr_offset],[lever_loc_both[ianimal_name][1]-sqr_offset,lever_loc_both[ianimal_name][1]+sqr_offset],'--',linewidth=linewidthss, color='g')
 
 
                 # draw tube square
-                sqr_offset = sqr_thres_tubelever # usually set as 75: draw a 150x150 pixel around lever 
-                ax1.plot([tube_loc_both[ianimal_name][0]-sqr_offset,tube_loc_both[ianimal_name][0]+sqr_offset],[tube_loc_both[ianimal_name][1]-sqr_offset,tube_loc_both[ianimal_name][1]-sqr_offset],'--',color='y')
-                ax1.plot([tube_loc_both[ianimal_name][0]-sqr_offset,tube_loc_both[ianimal_name][0]+sqr_offset],[tube_loc_both[ianimal_name][1]+sqr_offset,tube_loc_both[ianimal_name][1]+sqr_offset],'--',color='y')
-                ax1.plot([tube_loc_both[ianimal_name][0]-sqr_offset,tube_loc_both[ianimal_name][0]-sqr_offset],[tube_loc_both[ianimal_name][1]-sqr_offset,tube_loc_both[ianimal_name][1]+sqr_offset],'--',color='y')
-                ax1.plot([tube_loc_both[ianimal_name][0]+sqr_offset,tube_loc_both[ianimal_name][0]+sqr_offset],[tube_loc_both[ianimal_name][1]-sqr_offset,tube_loc_both[ianimal_name][1]+sqr_offset],'--',color='y')
+                if 0:
+                    sqr_offset = sqr_thres_tubelever # usually set as 75: draw a 150x150 pixel around lever 
+                    ax1.plot([tube_loc_both[ianimal_name][0]-sqr_offset,tube_loc_both[ianimal_name][0]+sqr_offset],[tube_loc_both[ianimal_name][1]-sqr_offset,tube_loc_both[ianimal_name][1]-sqr_offset],'--',color='y')
+                    ax1.plot([tube_loc_both[ianimal_name][0]-sqr_offset,tube_loc_both[ianimal_name][0]+sqr_offset],[tube_loc_both[ianimal_name][1]+sqr_offset,tube_loc_both[ianimal_name][1]+sqr_offset],'--',color='y')
+                    ax1.plot([tube_loc_both[ianimal_name][0]-sqr_offset,tube_loc_both[ianimal_name][0]-sqr_offset],[tube_loc_both[ianimal_name][1]-sqr_offset,tube_loc_both[ianimal_name][1]+sqr_offset],'--',color='y')
+                    ax1.plot([tube_loc_both[ianimal_name][0]+sqr_offset,tube_loc_both[ianimal_name][0]+sqr_offset],[tube_loc_both[ianimal_name][1]-sqr_offset,tube_loc_both[ianimal_name][1]+sqr_offset],'--',color='y')
 
 
                 # draw head vector
@@ -426,10 +435,10 @@ def tracking_video_singlecam_wholebody_withNeuron_sepbhv_demo_twoAnimalRecording
                 # # head gaze direction is assumed to be opposite to the head axis
                 head_loc_iframe = meaneye_loc_iframe - 400*np.array(output_allvectors['head_vect_all_merge'][ianimal_name])[iframe,:]
                 if (ianimal==1):
-                    # ax1.plot([meaneye_loc_iframe[0],head_loc_iframe[0]],[meaneye_loc_iframe[1],head_loc_iframe[1]],'-',color = '0.75',label='head axis')
-                    ax1.plot([meaneye_loc_iframe[0],head_loc_iframe[0]],[meaneye_loc_iframe[1],head_loc_iframe[1]],'-',color = '0.75',label='head gaze')
+                    # ax1.plot([meaneye_loc_iframe[0],head_loc_iframe[0]],[meaneye_loc_iframe[1],head_loc_iframe[1]],'-',color = '0.5',label='head axis')
+                    ax1.plot([meaneye_loc_iframe[0],head_loc_iframe[0]],[meaneye_loc_iframe[1],head_loc_iframe[1]],'-',color = '0.5',linewidth=linewidthss, label='head gaze')
                 else:
-                    ax1.plot([meaneye_loc_iframe[0],head_loc_iframe[0]],[meaneye_loc_iframe[1],head_loc_iframe[1]],'-',color = '0.75')     
+                    ax1.plot([meaneye_loc_iframe[0],head_loc_iframe[0]],[meaneye_loc_iframe[1],head_loc_iframe[1]],'-',color = '0.5', linewidth=linewidthss )     
 
                 # draw other - eye vector   
                 if 0:         

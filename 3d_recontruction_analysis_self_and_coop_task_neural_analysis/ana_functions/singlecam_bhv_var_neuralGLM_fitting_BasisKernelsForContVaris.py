@@ -423,9 +423,9 @@ def get_singlecam_bhv_var_for_neuralGLM_fitting_BasisKernelsForContVaris(gausKer
         for ispike in np.arange(0,nspikes,1):
             spiketrain[spiketimes[ispike]] = counts[ispike]
 
-        if ianimal == 0:
+        if recordedanimal == animal1:
             timepoint_pull = time_point_pull1
-        elif ianimal == 1:
+        elif recordedanimal == animal2:
             timepoint_pull = time_point_pull2
         #
         xxx_time = np.arange(0,np.shape(spiketrain)[0],1)/fps

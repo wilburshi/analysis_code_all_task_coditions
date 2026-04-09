@@ -105,7 +105,11 @@ animalnames_videotrack,bodypartnames_videotrack,date_tgt,animal1_filename,animal
                     ]
     nskeletons = np.shape(skeletons)[0]
     
-    colors = ['#bf3eff','#f5911e','#5c5c5c']
+    # colors = ['#bf3eff','#f5911e','#5c5c5c']
+    colors = ['#a6a6a6','#000000','k']
+    
+    linewidthss = 5
+    markersizess = 25
     
 
     # Settings
@@ -273,9 +277,9 @@ animalnames_videotrack,bodypartnames_videotrack,date_tgt,animal1_filename,animal
 
                 # plot the body parts
                 if (ianimal==0): 
-                    ax1.plot3D(bodypart_loc_iframe[:,0], bodypart_loc_iframe[:,1],bodypart_loc_iframe[:,2], '.', color=colors[ianimal],label ='animal1')
+                    ax1.plot3D(bodypart_loc_iframe[:,0], bodypart_loc_iframe[:,1],bodypart_loc_iframe[:,2], '.', color=colors[ianimal], markersize = markersizess, label ='animal1')
                 else:
-                    ax1.plot3D(bodypart_loc_iframe[:,0], bodypart_loc_iframe[:,1],bodypart_loc_iframe[:,2], '.', color=colors[ianimal],label ='animal2')
+                    ax1.plot3D(bodypart_loc_iframe[:,0], bodypart_loc_iframe[:,1],bodypart_loc_iframe[:,2], '.', color=colors[ianimal], markersize = markersizess, label ='animal2')
                 
                 # draw skeleton                
                 for iskel in np.arange(0,nskeletons,1):
@@ -294,7 +298,7 @@ animalnames_videotrack,bodypartnames_videotrack,date_tgt,animal1_filename,animal
                             skelbody12_loc_iframe = np.dot(skelbody12_loc_iframe, R.T)+t
 
                         # plot one skeleton
-                        ax1.plot3D(skelbody12_loc_iframe[:,0],skelbody12_loc_iframe[:,1],skelbody12_loc_iframe[:,2],'-',color=colors[ianimal])
+                        ax1.plot3D(skelbody12_loc_iframe[:,0],skelbody12_loc_iframe[:,1],skelbody12_loc_iframe[:,2],'-',color=colors[ianimal], linewidth = linewidthss)
                     except:
                         continue
                
@@ -308,11 +312,11 @@ animalnames_videotrack,bodypartnames_videotrack,date_tgt,animal1_filename,animal
                     # rotate the x y z axis
                     tube_loc_iframe = R.dot(tube_loc_iframe)+t
                 if (ianimal==1): 
-                    ax1.plot3D(lever_loc_iframe[0],lever_loc_iframe[1],lever_loc_iframe[2], 'o', color='g',label ='lever')
-                    ax1.plot3D(tube_loc_iframe[0], tube_loc_iframe[1], tube_loc_iframe[2], 'o', color='y',label ='tube')
+                    ax1.plot3D(lever_loc_iframe[0],lever_loc_iframe[1],lever_loc_iframe[2], 'o', markersize = markersizess, color='g',label ='lever')
+                    ax1.plot3D(tube_loc_iframe[0], tube_loc_iframe[1], tube_loc_iframe[2], 'o', markersize = markersizess,  color='y',label ='tube')
                 else:
-                    ax1.plot3D(lever_loc_iframe[0],lever_loc_iframe[1],lever_loc_iframe[2], 'o', color='g')
-                    ax1.plot3D(tube_loc_iframe[0], tube_loc_iframe[1], tube_loc_iframe[2], 'o', color='y')
+                    ax1.plot3D(lever_loc_iframe[0],lever_loc_iframe[1],lever_loc_iframe[2], 'o', markersize = markersizess, color='g')
+                    ax1.plot3D(tube_loc_iframe[0], tube_loc_iframe[1], tube_loc_iframe[2], 'o', markersize = markersizess, color='y')
                 
            
                 # draw the eye direction 
@@ -329,9 +333,9 @@ animalnames_videotrack,bodypartnames_videotrack,date_tgt,animal1_filename,animal
 
 
                 if (ianimal==1):
-                    ax1.plot3D([meaneye_loc_iframe[0],gaze_dir_iframe[0]],[meaneye_loc_iframe[1],gaze_dir_iframe[1]],[meaneye_loc_iframe[2],gaze_dir_iframe[2]],'-',color = '0.25',label='head gaze dir')
+                    ax1.plot3D([meaneye_loc_iframe[0],gaze_dir_iframe[0]],[meaneye_loc_iframe[1],gaze_dir_iframe[1]],[meaneye_loc_iframe[2],gaze_dir_iframe[2]],'--',color = '#00a6d0', linewidth=linewidthss, label='head gaze dir')
                 else:
-                    ax1.plot3D([meaneye_loc_iframe[0],gaze_dir_iframe[0]],[meaneye_loc_iframe[1],gaze_dir_iframe[1]],[meaneye_loc_iframe[2],gaze_dir_iframe[2]],'-',color = '0.25')     
+                    ax1.plot3D([meaneye_loc_iframe[0],gaze_dir_iframe[0]],[meaneye_loc_iframe[1],gaze_dir_iframe[1]],[meaneye_loc_iframe[2],gaze_dir_iframe[2]],'--', linewidth=linewidthss, color = '#00a6d0')     
 
 
                 # ax1.legend(loc='upper right',fontsize = 28)

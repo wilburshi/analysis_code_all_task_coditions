@@ -28,6 +28,10 @@ session_start_time,fps,nframes,cameraID,video_file_original,sqr_thres_tubelever,
     nskeletons = np.shape(skeletons)[0]
     
     colors = ['#bf3eff','#f5911e','#5c5c5c']
+    # colors = ['#a6a6a6','#000000','k']
+    
+    linewidthss = 5
+    markersizess = 15
     
     import matplotlib.animation as animation
 
@@ -246,7 +250,7 @@ session_start_time,fps,nframes,cameraID,video_file_original,sqr_thres_tubelever,
                     ibdpart_name = body_parts_unique[ibdpart]
                     bodypart_loc_iframe[ibdpart,:] = np.array(bodyparts_locs_camN[(ianimal_name,ibdpart_name)])[iframe,:]
                 # plot the body parts
-                ax1.plot(bodypart_loc_iframe[:,0], bodypart_loc_iframe[:,1], '.', color=colors[ianimal])
+                ax1.plot(bodypart_loc_iframe[:,0], bodypart_loc_iframe[:,1], '.', markersize=markersizess, color=colors[ianimal])
                 
                 # draw skeleton     
                 withlabel = 0           
@@ -264,12 +268,12 @@ session_start_time,fps,nframes,cameraID,video_file_original,sqr_thres_tubelever,
                         # add the label for legend
                         if not withlabel:
                             if (ianimal==0): 
-                                ax1.plot(skelbody12_loc_iframe[:,0],skelbody12_loc_iframe[:,1],'-',color=colors[ianimal],label ='animal 1')
+                                ax1.plot(skelbody12_loc_iframe[:,0],skelbody12_loc_iframe[:,1],'-',linewidth=linewidthss, color=colors[ianimal],label ='animal 1')
                             else:
-                                ax1.plot(skelbody12_loc_iframe[:,0],skelbody12_loc_iframe[:,1],'-',color=colors[ianimal],label ='animal 2')
+                                ax1.plot(skelbody12_loc_iframe[:,0],skelbody12_loc_iframe[:,1],'-',linewidth=linewidthss, color=colors[ianimal],label ='animal 2')
                             withlabel = 1
                         else:
-                            ax1.plot(skelbody12_loc_iframe[:,0],skelbody12_loc_iframe[:,1],'-',color=colors[ianimal])
+                            ax1.plot(skelbody12_loc_iframe[:,0],skelbody12_loc_iframe[:,1],'-',linewidth=linewidthss, color=colors[ianimal])
                     except:
                         continue
 
@@ -307,11 +311,11 @@ session_start_time,fps,nframes,cameraID,video_file_original,sqr_thres_tubelever,
                 # draw lever and tube location
                 if 0:
                     if (ianimal==1): 
-                        ax1.plot(lever_loc_both[ianimal_name][0],lever_loc_both[ianimal_name][1],'o',color='g',label='lever')
-                        ax1.plot(tube_loc_both[ianimal_name][0],tube_loc_both[ianimal_name][1],'o',color='y',label='tube')
+                        ax1.plot(lever_loc_both[ianimal_name][0],lever_loc_both[ianimal_name][1],'o',markersize=markersizess,color='g',label='lever')
+                        ax1.plot(tube_loc_both[ianimal_name][0],tube_loc_both[ianimal_name][1],'o',markersize=markersizess,color='y',label='tube')
                     else:
-                        ax1.plot(lever_loc_both[ianimal_name][0],lever_loc_both[ianimal_name][1],'o',color='g')
-                        ax1.plot(tube_loc_both[ianimal_name][0],tube_loc_both[ianimal_name][1],'o',color='y')
+                        ax1.plot(lever_loc_both[ianimal_name][0],lever_loc_both[ianimal_name][1],'o',markersize=markersizess,color='g')
+                        ax1.plot(tube_loc_both[ianimal_name][0],tube_loc_both[ianimal_name][1],'o',markersize=markersizess,color='y')
                 
                 # draw lever square
                 if 0:
@@ -339,10 +343,10 @@ session_start_time,fps,nframes,cameraID,video_file_original,sqr_thres_tubelever,
                 # # head gaze direction is assumed to be opposite to the head axis
                 head_loc_iframe = meaneye_loc_iframe - 400*np.array(output_allvectors['head_vect_all_merge'][ianimal_name])[iframe,:]
                 if (ianimal==1):
-                    # ax1.plot([meaneye_loc_iframe[0],head_loc_iframe[0]],[meaneye_loc_iframe[1],head_loc_iframe[1]],'-',color = '0.75',label='head axis')
-                    ax1.plot([meaneye_loc_iframe[0],head_loc_iframe[0]],[meaneye_loc_iframe[1],head_loc_iframe[1]],'-',color = '0.75',label='head gaze')
+                    # ax1.plot([meaneye_loc_iframe[0],head_loc_iframe[0]],[meaneye_loc_iframe[1],head_loc_iframe[1]],'--',color = '#00a6d0',label='head axis')
+                    ax1.plot([meaneye_loc_iframe[0],head_loc_iframe[0]],[meaneye_loc_iframe[1],head_loc_iframe[1]],'--',linewidth=linewidthss, color = '#00a6d0',label='head gaze')
                 else:
-                    ax1.plot([meaneye_loc_iframe[0],head_loc_iframe[0]],[meaneye_loc_iframe[1],head_loc_iframe[1]],'-',color = '0.75')     
+                    ax1.plot([meaneye_loc_iframe[0],head_loc_iframe[0]],[meaneye_loc_iframe[1],head_loc_iframe[1]],'--',linewidth=linewidthss, color = '#00a6d0')     
 
                 # draw other - eye vector   
                 if 0:         
@@ -369,7 +373,7 @@ session_start_time,fps,nframes,cameraID,video_file_original,sqr_thres_tubelever,
                         ax1.plot([meaneye_loc_iframe[0],lever_loc_iframe[0]],[meaneye_loc_iframe[1],lever_loc_iframe[1]],'-',color = 'g')
 
 
-                ax1.legend(loc='upper right',fontsize=20)
+                # ax1.legend(loc='upper right',fontsize=20)
                          
 
 
