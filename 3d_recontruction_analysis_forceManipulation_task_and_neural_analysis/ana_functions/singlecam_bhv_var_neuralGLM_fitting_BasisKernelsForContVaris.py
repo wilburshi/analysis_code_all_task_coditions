@@ -78,7 +78,7 @@ def convolve_with_basis(var, basis_funcs):
     ], axis=1)
 
 
-def get_singlecam_bhv_var_for_neuralGLM_fitting_BasisKernelsForContVaris(gausKernelsize, fps, animal1, animal2, recordedanimal, animalnames_videotrack, session_start_time, time_point_pull1, time_point_pull2, time_point_juice1, time_point_juice2, oneway_gaze1, oneway_gaze2, mutual_gaze1, mutual_gaze2, output_look_ornot, output_allvectors, output_allangles, output_key_locations, spike_clusters_data, spike_time_data, spike_channels_data):
+def get_singlecam_bhv_var_for_neuralGLM_fitting_BasisKernelsForContVaris(gausKernelsize, fps, animal1, animal2, recordedanimal, animalnames_videotrack, session_start_time, time_point_pull1, time_point_pull2, time_point_juice1, time_point_juice2, oneway_gaze1, oneway_gaze2, mutual_gaze1, mutual_gaze2, lever1_delta_force, lever2_delta_force, output_look_ornot, output_allvectors, output_allangles, output_key_locations, spike_clusters_data, spike_time_data, spike_channels_data):
     
 
     
@@ -115,7 +115,7 @@ def get_singlecam_bhv_var_for_neuralGLM_fitting_BasisKernelsForContVaris(gausKer
     animal2_gaze_stop = animal2_gaze_stop[~np.isin(animal2_gaze_stop,animal2_gaze_flash)] 
 
 
-    con_vars_plot = ['gaze_other_angle', 'gaze_tube_angle', 'gaze_lever_angle', 'animal_animal_dist', 'animal_tube_dist', 'animal_lever_dist', 'othergaze_self_angle', 'mass_move_speed', 'other_mass_move_speed', 'gaze_angle_speed', 'otherani_otherlever_dist', 'otherani_othertube_dist', 'socialgaze_prob', 'othergaze_prob', 'otherpull_prob', 'selfpull_prob', 'selfjuice_prob']
+    con_vars_plot = ['gaze_other_angle', 'gaze_tube_angle', 'gaze_lever_angle', 'animal_animal_dist', 'animal_tube_dist', 'animal_lever_dist', 'othergaze_self_angle', 'mass_move_speed', 'other_mass_move_speed', 'gaze_angle_speed', 'otherani_otherlever_dist', 'otherani_othertube_dist', 'socialgaze_prob', 'othergaze_prob', 'otherpull_prob', 'selfpull_prob', 'selfjuice_prob','self_deltaforce','other_deltaforce']
     
     data_summary_names = con_vars_plot
     
@@ -363,10 +363,73 @@ def get_singlecam_bhv_var_for_neuralGLM_fitting_BasisKernelsForContVaris(gausKer
             timeseries_selfjuice = np.zeros((int(np.ceil(np.nanmax(np.round(timepoint_selfjuice*fps))))+1,))
             timeseries_selfjuice[list(map(int,list(np.round(timepoint_selfjuice*fps))))]=1
         selfjuice_prob = scipy.ndimage.gaussian_filter1d(timeseries_selfjuice,1)
+        
+        # 
+        # get the self lever delta force time series
+        # align to the start of the video recording
+        # self lever delta force
+        if ianimal == 0:
+            timepoint_selfdeltaforce = lever1_delta_force.copy()
+        elif ianimal == 1:
+            timepoint_selfdeltaforce = lever2_delta_force.copy()
+        timepoint_selfdeltaforce[:,1] = timepoint_selfdeltaforce[:,1] + session_start_time
+        #
+        try:
+            timeseries_selfdeltaforce = np.zeros(np.shape(gaze_angle_speed))
+            for i, (delta, time) in enumerate(timepoint_selfdeltaforce):
+                start_idx = int(np.round(time * fps))
+                if i + 1 < len(timepoint_selfdeltaforce):
+                    end_idx = int(np.round(timepoint_selfdeltaforce[i + 1, 1] * fps))
+                else:
+                    end_idx = len(timeseries_selfdeltaforce)
+                timeseries_selfdeltaforce[start_idx:end_idx] = delta
+        except:  # some videos are shorter than the task
+            timeseries_selfdeltaforce = np.zeros((int(np.ceil(np.nanmax(np.round(timepoint_selfjuice*fps))))+1,))
+            for i, (delta, time) in enumerate(timepoint_selfdeltaforce):
+                start_idx = int(np.round(time * fps))
+                if i + 1 < len(timepoint_selfdeltaforce):
+                    end_idx = int(np.round(timepoint_selfdeltaforce[i + 1, 1] * fps))
+                else:
+                    end_idx = len(timeseries_selfdeltaforce)
+                timeseries_selfdeltaforce[start_idx:end_idx] = delta
+        self_deltaforce = timeseries_selfdeltaforce
+        
+        # 
+        # get the other lever delta force time series
+        # align to the start of the video recording
+        # self lever delta force
+        if ianimal == 0:
+            timepoint_otherdeltaforce = lever2_delta_force.copy()
+        elif ianimal == 1:
+            timepoint_otherdeltaforce = lever1_delta_force.copy()
+        timepoint_otherdeltaforce[:,1] = timepoint_otherdeltaforce[:,1] + session_start_time
+        #
+        try:
+            timeseries_otherdeltaforce = np.zeros(np.shape(gaze_angle_speed))
+            for i, (delta, time) in enumerate(timepoint_otherdeltaforce):
+                start_idx = int(np.round(time * fps))
+                if i + 1 < len(timepoint_otherdeltaforce):
+                    end_idx = int(np.round(timepoint_otherdeltaforce[i + 1, 1] * fps))
+                else:
+                    end_idx = len(timeseries_otherdeltaforce)
+                timeseries_otherdeltaforce[start_idx:end_idx] = delta
+        except:  # some videos are shorter than the task
+            timeseries_otherdeltaforce = np.zeros((int(np.ceil(np.nanmax(np.round(timepoint_selfjuice*fps))))+1,))
+            for i, (delta, time) in enumerate(timepoint_otherdeltaforce):
+                start_idx = int(np.round(time * fps))
+                if i + 1 < len(timepoint_otherdeltaforce):
+                    end_idx = int(np.round(timepoint_otherdeltaforce[i + 1, 1] * fps))
+                else:
+                    end_idx = len(timeseries_otherdeltaforce)
+                timeseries_otherdeltaforce[start_idx:end_idx] = delta
+        other_deltaforce = timeseries_otherdeltaforce
+        
+        
+            
 
 
         # put all the data together in the same order as the con_vars_plot
-        data_summary[animal_name_forsaving] = [gaze_other_angle, gaze_tube_angle, gaze_lever_angle, animal_animal_dist, animal_tube_dist, animal_lever_dist, othergaze_self_angle, mass_move_speed, other_mass_move_speed, gaze_angle_speed, otherani_otherlever_dist, otherani_othertube_dist, socialgaze_prob, othergaze_prob, otherpull_prob, selfpull_prob, selfjuice_prob]
+        data_summary[animal_name_forsaving] = [gaze_other_angle, gaze_tube_angle, gaze_lever_angle, animal_animal_dist, animal_tube_dist, animal_lever_dist, othergaze_self_angle, mass_move_speed, other_mass_move_speed, gaze_angle_speed, otherani_otherlever_dist, otherani_othertube_dist, socialgaze_prob, othergaze_prob, otherpull_prob, selfpull_prob, selfjuice_prob, self_deltaforce, other_deltaforce]
 
         #
         # only plot the active meaning period

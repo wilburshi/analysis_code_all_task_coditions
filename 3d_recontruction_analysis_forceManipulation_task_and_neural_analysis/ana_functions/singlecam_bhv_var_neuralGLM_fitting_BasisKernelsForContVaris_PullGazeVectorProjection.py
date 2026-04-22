@@ -542,6 +542,8 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeVectorProjection_partnerP
 
 # directly use the pull, gaze and juice as the regressor; also consider partner's action's pc1
 
+# add two new single variables (not kernel) to consider the self and other's delta force
+
 ########################
 
 def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1(KERNEL_DURATION_S, KERNEL_OFFSET_S, N_BASIS_FUNCS, fps, animal1, animal2, recordedanimal, var_toglm_names,  data_summary_names, data_summary_twoanimals, spiketrain_summary, dospikehist, spikehist_twin, N_BOOTSTRAPS,test_size):
@@ -558,6 +560,10 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1(KERNEL_DU
     pull_axis_name = ['selfpull_prob']
     gaze_axis_name = ['socialgaze_prob']
     juice_axis_name = ['selfjuice_prob']
+    
+    self_deltaforce_name = ['self_deltaforce']
+    other_deltaforce_name = ['other_deltaforce']
+    
 
     # for self animal projection
     data_summary = data_summary_twoanimals[recordedanimal]
@@ -575,6 +581,10 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1(KERNEL_DU
     Pullindices_in_summary = [data_summary_names.index(var) for var in pull_axis_name]
     Gazeindices_in_summary = [data_summary_names.index(var) for var in gaze_axis_name]
     Juiceindices_in_summary = [data_summary_names.index(var) for var in juice_axis_name]
+    #
+    Selfforceindices_in_summary = [data_summary_names.index(var) for var in self_deltaforce_name]
+    Otherforceindices_in_summary = [data_summary_names.index(var) for var in other_deltaforce_name]
+    
 
     # Data extraction
     data_summary = np.array(data_summary)
@@ -582,7 +592,10 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1(KERNEL_DU
     var_pull = data_summary[Pullindices_in_summary][0]      # shape (T,)
     var_gaze = data_summary[Gazeindices_in_summary][0]
     var_juice = data_summary[Juiceindices_in_summary][0]
-
+    
+    self_deltaforce = data_summary[Selfforceindices_in_summary][0]
+    other_deltaforce = data_summary[Otherforceindices_in_summary][0]
+    
     # 2. smooth the gaze, pull, jucie axis more
     var_pull = scipy.ndimage.gaussian_filter1d(var_pull,4)
     var_gaze = scipy.ndimage.gaussian_filter1d(var_gaze,4)
@@ -634,14 +647,27 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1(KERNEL_DU
     # Now, stack the perfectly aligned arrays
     predictors = np.vstack(truncated_arrays)
 
-
     # Design matrix from continuous variables
     X_continuous = np.hstack([convolve_with_basis(v, basis_funcs) for v in predictors])
     #
     # zscore again
     scaler = StandardScaler()
     X_continuous_z = scaler.fit_transform(X_continuous)
-
+    
+    # after computing X_continuous_z
+    # z-score and truncate force variables
+    self_std = np.nanstd(self_deltaforce)
+    other_std = np.nanstd(other_deltaforce)
+    #
+    self_deltaforce_z = (self_deltaforce - np.nanmean(self_deltaforce)) / self_std if self_std > 0 else np.zeros_like(self_deltaforce)
+    other_deltaforce_z = (other_deltaforce - np.nanmean(other_deltaforce)) / other_std if other_std > 0 else np.zeros_like(other_deltaforce)
+    # truncate to min_len
+    self_deltaforce_z = self_deltaforce_z[:min_len]
+    other_deltaforce_z = other_deltaforce_z[:min_len]
+    # append as extra columns
+    X_full = np.hstack([X_continuous_z, self_deltaforce_z[:, None], other_deltaforce_z[:, None]])
+    #
+    X_full_original = X_full.copy()
 
     # do the glm for each neuron
     neuron_clusters = list(spiketrain_summary.keys())
@@ -652,12 +678,17 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1(KERNEL_DU
     n_vars = len(var_toglm_names)
     n_basis = basis_funcs.shape[1]
     T_kernel = basis_funcs.shape[0]  # length of time kernel
+    n_kernel_coefs = n_vars * n_basis  # the first n_kernel_coefs belong to kernels
+
 
     # storage
     Kernel_coefs_allboots_allcells = {}
     Kernel_coefs_spikehist_allboots_allcells = {}
     Kernel_coefs_allboots_allcells_shf = {}
     Kernel_coefs_spikehist_allboots_allcells_shf = {}
+    #
+    Scalar_coefs_allboots_allcells = {}
+    Scalar_coefs_allboots_allcells_shf = {}
     #
     Temporal_filters_allcells = dict.fromkeys(neuron_clusters, None)
     Temporal_filters_spikehist_allcells = dict.fromkeys(neuron_clusters, None)
@@ -673,9 +704,9 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1(KERNEL_DU
         # Y = (spiketrain_summary[iclusterID] > 0).astype(int)
         Y = spiketrain_summary[iclusterID]
         
-        # make sure X_continous_z and Y has the same shape
+        # make sure X_full and Y has the same shape
         # Get the number of time points (samples) from the first dimension
-        n_time_points_X = X_continuous_z.shape[0]
+        n_time_points_X = X_full_original.shape[0]
         n_time_points_Y = Y.shape[0]
 
         # Find the minimum of the two lengths
@@ -683,7 +714,8 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1(KERNEL_DU
 
         # Truncate both arrays to the minimum length
         Y = Y[:min_len]
-        X_continuous_z = X_continuous_z[:min_len, :]
+        # then at the start of each cluster loop:
+        X_full = X_full_original[:min_len, :]
         
         
         #
@@ -695,12 +727,16 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1(KERNEL_DU
         #
         Kernel_coefs_boots_shf = []
         filters_boot_shf = []
+        #
+        Scalar_coefs_boots = []
+        Scalar_coefs_boots_shf = []
 
+        
         for i in range(N_BOOTSTRAPS):
 
             # Train/test split
             X_tr, X_te, y_tr, y_te = train_test_split(
-                X_continuous_z, Y, test_size=0.2, random_state=random.randint(0, 10000)
+                X_full, Y, test_size=0.2, random_state=random.randint(0, 10000)
                 )
 
             #
@@ -713,32 +749,41 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1(KERNEL_DU
             clf_full = PoissonRegressor(alpha=10, max_iter=500)  # alpha controls regularization strength
             clf_full.fit(X_tr, y_tr)
 
-            # Extract coefficients
+            # Extract coefficients - split kernel coefs from scalar coefs
             full_beta = clf_full.coef_.flatten()
-            kernel_matrix = full_beta.reshape(n_vars, n_basis)
-            Kernel_coefs_boots.append(kernel_matrix)
+            kernel_coefs = full_beta[:n_kernel_coefs]        # first part: kernel vars
+            scalar_coefs = full_beta[n_kernel_coefs:]        # last 2: self/other deltaforce
 
-            # Reconstruct temporal filter
-            temporal_filter = np.dot(kernel_matrix, basis_funcs.T)  # (n_vars, T_kernel)
+            kernel_matrix = kernel_coefs.reshape(n_vars, n_basis)
+            Kernel_coefs_boots.append(kernel_matrix)         # save kernel part as before
+            #
+            Scalar_coefs_boots.append(scalar_coefs)
+        
+            # Reconstruct temporal filter (kernel vars only)
+            temporal_filter = np.dot(kernel_matrix, basis_funcs.T)
             filters_boot.append(temporal_filter)
+            
 
             # SHUFFLED CONTROL
             X_tr, X_te, y_tr, y_te = train_test_split(
-                X_continuous_z, Y_shuffled, test_size=0.2, random_state=random.randint(0, 10000)
+                X_full, Y_shuffled, test_size=0.2, random_state=random.randint(0, 10000)
             )
-            
-            #
+
             finite_mask = np.isfinite(X_tr).all(axis=1)
             X_tr = X_tr[finite_mask]
             y_tr = y_tr[finite_mask]
-            #
 
             clf_shuffled = PoissonRegressor(alpha=10, max_iter=500)
             clf_shuffled.fit(X_tr, y_tr)
 
             full_beta_shf = clf_shuffled.coef_.flatten()
-            kernel_matrix_shf = full_beta_shf.reshape(n_vars, n_basis)
+            kernel_coefs_shf = full_beta_shf[:n_kernel_coefs]
+            scalar_coefs_shf = full_beta_shf[n_kernel_coefs:]
+
+            kernel_matrix_shf = kernel_coefs_shf.reshape(n_vars, n_basis)
             Kernel_coefs_boots_shf.append(kernel_matrix_shf)
+            #
+            Scalar_coefs_boots_shf.append(scalar_coefs_shf)
 
             temporal_filter_shf = np.dot(kernel_matrix_shf, basis_funcs.T)
             filters_boot_shf.append(temporal_filter_shf)
@@ -751,14 +796,19 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1(KERNEL_DU
         Kernel_coefs_allboots_allcells_shf[iclusterID] = np.array(Kernel_coefs_boots_shf)  # shape: (n_boots, n_vars, n_basis)
         Temporal_filters_allcells_shf[iclusterID] = np.array(filters_boot_shf) # (n_boots, n_vars, T_kernel)
 
+        Scalar_coefs_allboots_allcells[iclusterID] = np.array(Scalar_coefs_boots)        # shape: (n_boots, 2)
+        Scalar_coefs_allboots_allcells_shf[iclusterID] = np.array(Scalar_coefs_boots_shf) # shape: (n_boots, 2)
 
 
     neuralGLM_kernels_coef = Kernel_coefs_allboots_allcells
     neuralGLM_kernels_tempFilter = Temporal_filters_allcells
     neuralGLM_kernels_coef_shf = Kernel_coefs_allboots_allcells_shf
     neuralGLM_kernels_tempFilter_shf = Temporal_filters_allcells_shf
+    
+    neuralGLM_scalar_coef = Scalar_coefs_allboots_allcells
+    neuralGLM_scalar_coef_shf = Scalar_coefs_allboots_allcells_shf
 
-    return neuralGLM_kernels_coef, neuralGLM_kernels_tempFilter, neuralGLM_kernels_coef_shf, neuralGLM_kernels_tempFilter_shf, var_toglm_names
+    return neuralGLM_kernels_coef, neuralGLM_kernels_tempFilter, neuralGLM_kernels_coef_shf, neuralGLM_kernels_tempFilter_shf, neuralGLM_scalar_coef, neuralGLM_scalar_coef_shf, var_toglm_names
 
 
 
@@ -989,6 +1039,8 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPullGazeAxis(
 
 # directly use the pull, gaze and juice as the regressor; also consider partner's action's pc1
 
+# add two new single variables (not kernel) to consider the self and other's delta force
+
 ########################
 
 # helper function
@@ -1052,6 +1104,9 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1_LOOmethod
     pull_axis_name = ['selfpull_prob']
     gaze_axis_name = ['socialgaze_prob']
     juice_axis_name = ['selfjuice_prob']
+    
+    self_deltaforce_name = ['self_deltaforce']
+    other_deltaforce_name = ['other_deltaforce']
 
     # Data for the recorded animal
     data_summary = data_summary_twoanimals[recordedanimal]
@@ -1059,6 +1114,10 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1_LOOmethod
     var_pull = np.array(data_summary)[data_summary_names.index(pull_axis_name[0])]
     var_gaze = np.array(data_summary)[data_summary_names.index(gaze_axis_name[0])]
     var_juice = np.array(data_summary)[data_summary_names.index(juice_axis_name[0])]
+    
+    self_deltaforce = np.array(data_summary)[data_summary_names.index(self_deltaforce_name[0])]
+    other_deltaforce = np.array(data_summary)[data_summary_names.index(other_deltaforce_name[0])]
+    
     var_pull = scipy.ndimage.gaussian_filter1d(var_pull, 4)
     var_gaze = scipy.ndimage.gaussian_filter1d(var_gaze, 4)
     var_juice = scipy.ndimage.gaussian_filter1d(var_juice, 4)
@@ -1114,9 +1173,28 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1_LOOmethod
     X_continuous = np.hstack(X_blocks)
     scaler = StandardScaler()
     X_continuous_z = scaler.fit_transform(X_continuous)
+    
+    # z-score and truncate force variables
+    self_std = np.nanstd(self_deltaforce)
+    other_std = np.nanstd(other_deltaforce)
+    #
+    self_deltaforce_z = (self_deltaforce - np.nanmean(self_deltaforce)) / self_std if self_std > 0 else np.zeros_like(self_deltaforce)
+    other_deltaforce_z = (other_deltaforce - np.nanmean(other_deltaforce)) / other_std if other_std > 0 else np.zeros_like(other_deltaforce)
+    self_deltaforce_z = self_deltaforce_z[:min_len_behav]
+    other_deltaforce_z = other_deltaforce_z[:min_len_behav]
 
+    # append to design matrix
+    X_full = np.hstack([X_continuous_z, self_deltaforce_z[:, None], other_deltaforce_z[:, None]])
+    
+    # update names and block sizes
+    var_toglm_names_split.append('self_deltaforce')
+    var_toglm_names_split.append('other_deltaforce')
+    block_sizes.append(1)
+    block_sizes.append(1)
+    
     # Pre-calculate the column indices for each of the 8 blocks
     block_indices = np.cumsum([0] + block_sizes)
+    
 
     ###
     # 3. Run Leave-One-Out Model Comparison for Each Neuron
@@ -1129,9 +1207,9 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1_LOOmethod
         Y = spiketrain_summary[iclusterID]
 
         # Align neural and behavioral data
-        min_len = min(X_continuous_z.shape[0], Y.shape[0])
+        min_len = min(X_full.shape[0], Y.shape[0])
         Y = Y[:min_len]
-        X = X_continuous_z[:min_len, :]
+        X = X_full[:min_len, :]
 
         # Fit the FULL model (with all 8 predictor blocks)
         clf_full = PoissonRegressor(alpha=0, max_iter=1000, tol=1e-6)
@@ -1150,13 +1228,14 @@ def neuralGLM_fitting_BasisKernelsForContVaris_PullGazeAxis_partnerPC1_LOOmethod
 
         # Loop through all 8 of the split variable names (e.g., 'var_pull_past', 'var_pull_future', etc.)
         for i, var_name in enumerate(var_toglm_names_split):
-
-            # Determine which basis set to use (past or future) based on the variable name
+            if 'deltaforce' in var_name:
+                reconstructed_filters[var_name] = full_beta[block_indices[i]]  # scalar coef only
+                continue
             if "_past" in var_name:
                 basis_matrix_to_use = basis_past
-            else: # The name contains "_future"
+            else:
                 basis_matrix_to_use = basis_future
-
+                     
             # Get the start and end column indices for this specific variable's coefficients
             start_col, end_col = block_indices[i], block_indices[i+1]
 
