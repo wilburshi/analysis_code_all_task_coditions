@@ -1,5 +1,5 @@
 # # function - run firing rate around behavior events
-def plot_bhv_events_aligned_FR(date_tgt,savefig,save_path, animal1, animal2,time_point_pull1,time_point_pull2,time_point_pulls_succfail,oneway_gaze1,oneway_gaze2,mutual_gaze1,mutual_gaze2,gaze_thresold,totalsess_time_forFR,aligntwins,fps,FR_timepoint_allch,FR_zscore_allch,clusters_info_data):
+def plot_bhv_events_aligned_FR(date_tgt,savefig,save_path, animal1, animal2, time_point_pull1, time_point_pull2, time_point_pulls_succfail, time_point_pulls_leadfollow, oneway_gaze1, oneway_gaze2, mutual_gaze1, mutual_gaze2, gaze_thresold, totalsess_time_forFR, aligntwins, fps, FR_timepoint_allch, FR_zscore_allch, clusters_info_data):
     
     
     import pandas as pd
@@ -18,7 +18,6 @@ def plot_bhv_events_aligned_FR(date_tgt,savefig,save_path, animal1, animal2,time
     oneway_gaze2 = np.sort(np.hstack((oneway_gaze2,mutual_gaze2)))
 
     # get the gaze start and stop
-    #animal1_gaze = np.concatenate([oneway_gaze1, mutual_gaze1])
     animal1_gaze = oneway_gaze1
     animal1_gaze = np.sort(np.unique(animal1_gaze))
     try:
@@ -31,8 +30,7 @@ def plot_bhv_events_aligned_FR(date_tgt,savefig,save_path, animal1, animal2,time
         animal1_gaze_flash = np.nan
         animal1_gaze_start = np.nan
         animal1_gaze_stop = np.nan
-    #
-    #animal2_gaze = np.concatenate([oneway_gaze2, mutual_gaze2])
+
     animal2_gaze = oneway_gaze2
     animal2_gaze = np.sort(np.unique(animal2_gaze))
     try:
@@ -52,6 +50,22 @@ def plot_bhv_events_aligned_FR(date_tgt,savefig,save_path, animal1, animal2,time
     time_point_pull1_fail = np.array(time_point_pulls_succfail['pull1_fail'])
     time_point_pull2_fail = np.array(time_point_pulls_succfail['pull2_fail'])
 
+    # get the leading and following pull time point
+    time_point_pull1_succlead = np.array(time_point_pulls_leadfollow['pull1_succlead'])
+    time_point_pull2_succlead = np.array(time_point_pulls_leadfollow['pull2_succlead'])
+    time_point_pull1_faillead = np.array(time_point_pulls_leadfollow['pull1_faillead'])
+    time_point_pull2_faillead = np.array(time_point_pulls_leadfollow['pull2_faillead'])
+
+    time_point_pull1_succfollow = np.array(time_point_pulls_leadfollow['pull1_succfollow'])
+    time_point_pull2_succfollow = np.array(time_point_pulls_leadfollow['pull2_succfollow'])
+    time_point_pull1_failfollow = np.array(time_point_pulls_leadfollow['pull1_failfollow'])
+    time_point_pull2_failfollow = np.array(time_point_pulls_leadfollow['pull2_failfollow'])
+
+    time_point_pull1_lead = np.array(time_point_pulls_leadfollow['pull1_lead'])
+    time_point_pull2_lead = np.array(time_point_pulls_leadfollow['pull2_lead'])
+    time_point_pull1_follow = np.array(time_point_pulls_leadfollow['pull1_follow'])
+    time_point_pull2_follow = np.array(time_point_pulls_leadfollow['pull2_follow'])
+
 
     # keep the total time consistent
     time_point_pull1 = np.unique(time_point_pull1[time_point_pull1<totalsess_time_forFR])
@@ -67,11 +81,26 @@ def plot_bhv_events_aligned_FR(date_tgt,savefig,save_path, animal1, animal2,time
         animal2_gaze_start = np.nan
         animal2_gaze_stop = np.nan        
 
-    #
     time_point_pull1_succ = np.unique(time_point_pull1_succ[time_point_pull1_succ<totalsess_time_forFR])
     time_point_pull2_succ = np.unique(time_point_pull2_succ[time_point_pull2_succ<totalsess_time_forFR])
     time_point_pull1_fail = np.unique(time_point_pull1_fail[time_point_pull1_fail<totalsess_time_forFR])
     time_point_pull2_fail = np.unique(time_point_pull2_fail[time_point_pull2_fail<totalsess_time_forFR])
+
+    # --- NEW FILTERING ADDITIONS ---
+    time_point_pull1_lead = np.unique(time_point_pull1_lead[time_point_pull1_lead<totalsess_time_forFR])
+    time_point_pull2_lead = np.unique(time_point_pull2_lead[time_point_pull2_lead<totalsess_time_forFR])
+    time_point_pull1_follow = np.unique(time_point_pull1_follow[time_point_pull1_follow<totalsess_time_forFR])
+    time_point_pull2_follow = np.unique(time_point_pull2_follow[time_point_pull2_follow<totalsess_time_forFR])
+
+    time_point_pull1_succlead = np.unique(time_point_pull1_succlead[time_point_pull1_succlead<totalsess_time_forFR])
+    time_point_pull2_succlead = np.unique(time_point_pull2_succlead[time_point_pull2_succlead<totalsess_time_forFR])
+    time_point_pull1_faillead = np.unique(time_point_pull1_faillead[time_point_pull1_faillead<totalsess_time_forFR])
+    time_point_pull2_faillead = np.unique(time_point_pull2_faillead[time_point_pull2_faillead<totalsess_time_forFR])
+
+    time_point_pull1_succfollow = np.unique(time_point_pull1_succfollow[time_point_pull1_succfollow<totalsess_time_forFR])
+    time_point_pull2_succfollow = np.unique(time_point_pull2_succfollow[time_point_pull2_succfollow<totalsess_time_forFR])
+    time_point_pull1_failfollow = np.unique(time_point_pull1_failfollow[time_point_pull1_failfollow<totalsess_time_forFR])
+    time_point_pull2_failfollow = np.unique(time_point_pull2_failfollow[time_point_pull2_failfollow<totalsess_time_forFR])
 
 
     # unit clusters
@@ -88,49 +117,105 @@ def plot_bhv_events_aligned_FR(date_tgt,savefig,save_path, animal1, animal2,time
     animal2_gaze_start_align = animal2_gaze_start + aligntwins
     animal1_gaze_stop_align = animal1_gaze_stop + aligntwins
     animal2_gaze_stop_align = animal2_gaze_stop + aligntwins
-    #
+
     time_point_pull1_succ_align = time_point_pull1_succ + aligntwins
     time_point_pull2_succ_align = time_point_pull2_succ + aligntwins
     time_point_pull1_fail_align = time_point_pull1_fail + aligntwins
     time_point_pull2_fail_align = time_point_pull2_fail + aligntwins
 
+    # --- NEW ALIGNMENT ADDITIONS ---
+    time_point_pull1_lead_align = time_point_pull1_lead + aligntwins
+    time_point_pull2_lead_align = time_point_pull2_lead + aligntwins
+    time_point_pull1_follow_align = time_point_pull1_follow + aligntwins
+    time_point_pull2_follow_align = time_point_pull2_follow + aligntwins
+
+    time_point_pull1_succlead_align = time_point_pull1_succlead + aligntwins
+    time_point_pull2_succlead_align = time_point_pull2_succlead + aligntwins
+    time_point_pull1_faillead_align = time_point_pull1_faillead + aligntwins
+    time_point_pull2_faillead_align = time_point_pull2_faillead + aligntwins
+
+    time_point_pull1_succfollow_align = time_point_pull1_succfollow + aligntwins
+    time_point_pull2_succfollow_align = time_point_pull2_succfollow + aligntwins
+    time_point_pull1_failfollow_align = time_point_pull1_failfollow + aligntwins
+    time_point_pull2_failfollow_align = time_point_pull2_failfollow + aligntwins
+
 
     # plot the figures
     # align to the bhv events
-    bhv_events_anatypes = ['pull1','pull2',
-                           'pull1_succ','pull1_fail',
-                           'pull2_succ','pull2_fail',
-                           'gaze1','gaze2',
-                           'gaze1_start','gaze1_stop',
-                           'gaze2_start','gaze2_stop',
-                          ]
-    bhv_events_names = [animal1+' pull', animal2+' pull',
-                        animal1+' succpull', animal1+' failpull',
-                        animal2+' succpull', animal2+' failpull',
-                        animal1+' gaze', animal2+' gaze',
-                        animal1+' gazestart', animal1+' gazestop',
-                        animal2+' gazestart', animal2+' gazestop',
-                       ]
-    timepoint_bhvevents = {'pull1':time_point_pull1_align,
-                           'pull2':time_point_pull2_align,
-                           'pull1_succ':time_point_pull1_succ_align,
-                           'pull2_succ':time_point_pull2_succ_align,
-                           'pull1_fail':time_point_pull1_fail_align,
-                           'pull2_fail':time_point_pull2_fail_align,
-                           'gaze1':oneway_gaze1_align,
-                           'gaze2':oneway_gaze2_align,
-                           'gaze1_start':animal1_gaze_start_align,
-                           'gaze1_stop':animal1_gaze_stop_align,
-                           'gaze2_start':animal2_gaze_start_align,
-                           'gaze2_stop':animal2_gaze_stop_align,
-                          }
-    clrs_plot = ['r','y',
-                 'g','b',
-                 'c','m',
-                 '#7BC8F6','#9467BD',
-                 '#458B74','#FFC710',
-                 '#FF1493','#A9A9A9',
-                 '#8B4513','#FFC0CB',]
+    bhv_events_anatypes = [
+        'pull1','pull2',
+        'pull1_succ','pull1_fail',
+        'pull2_succ','pull2_fail',
+        'gaze1','gaze2',
+        'gaze1_start','gaze1_stop',
+        'gaze2_start','gaze2_stop',
+        # --- NEW LIST ADDITIONS ---
+        'pull1_lead', 'pull2_lead',
+        'pull1_follow', 'pull2_follow',
+        'pull1_succlead', 'pull2_succlead',
+        'pull1_succfollow', 'pull2_succfollow',
+        'pull1_faillead', 'pull2_faillead',
+        'pull1_failfollow', 'pull2_failfollow'
+    ]
+
+    bhv_events_names = [
+        animal1+' pull', animal2+' pull',
+        animal1+' succpull', animal1+' failpull',
+        animal2+' succpull', animal2+' failpull',
+        animal1+' gaze', animal2+' gaze',
+        animal1+' gazestart', animal1+' gazestop',
+        animal2+' gazestart', animal2+' gazestop',
+        # --- NEW LIST ADDITIONS ---
+        animal1+' leadpull', animal2+' leadpull',
+        animal1+' followpull', animal2+' followpull',
+        animal1+' succlead', animal2+' succlead',
+        animal1+' succfollow', animal2+' succfollow',
+        animal1+' faillead', animal2+' faillead',
+        animal1+' failfollow', animal2+' failfollow'
+    ]
+
+    timepoint_bhvevents = {
+        'pull1': time_point_pull1_align,
+        'pull2': time_point_pull2_align,
+        'pull1_succ': time_point_pull1_succ_align,
+        'pull2_succ': time_point_pull2_succ_align,
+        'pull1_fail': time_point_pull1_fail_align,
+        'pull2_fail': time_point_pull2_fail_align,
+        'gaze1': oneway_gaze1_align,
+        'gaze2': oneway_gaze2_align,
+        'gaze1_start': animal1_gaze_start_align,
+        'gaze1_stop': animal1_gaze_stop_align,
+        'gaze2_start': animal2_gaze_start_align,
+        'gaze2_stop': animal2_gaze_stop_align,
+        # --- NEW DICT ADDITIONS ---
+        'pull1_lead': time_point_pull1_lead_align,
+        'pull2_lead': time_point_pull2_lead_align,
+        'pull1_follow': time_point_pull1_follow_align,
+        'pull2_follow': time_point_pull2_follow_align,
+        'pull1_succlead': time_point_pull1_succlead_align,
+        'pull2_succlead': time_point_pull2_succlead_align,
+        'pull1_succfollow': time_point_pull1_succfollow_align,
+        'pull2_succfollow': time_point_pull2_succfollow_align,
+        'pull1_faillead': time_point_pull1_faillead_align,
+        'pull2_faillead': time_point_pull2_faillead_align,
+        'pull1_failfollow': time_point_pull1_failfollow_align,
+        'pull2_failfollow': time_point_pull2_failfollow_align
+    }
+
+    clrs_plot = [
+        'r','y',
+        'g','b',
+        'c','m',
+        '#7BC8F6','#9467BD',
+        '#458B74','#FFC710',
+        '#FF1493','#A9A9A9',
+        '#8B4513','#FFC0CB',
+        # --- 12 NEW DISTINCT COLORS ADDED ---
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', 
+        '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', 
+        '#bcbd22', '#17becf', 'navy', 'coral'
+    ]
+
     nanatypes = np.shape(bhv_events_anatypes)[0]
 
     #
